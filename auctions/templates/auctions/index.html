@@ -2,6 +2,13 @@
 
 {% block body %}
     <h2>Active Listings</h2>
+    <ul>
+    {% for listing in object_list %}
+        <li>
+            <a href="{% url 'listing-detail' pk=listing.pk %}">{{ listing.title }}</a>
+            {{ listing }}
+        </li>
+    {% endfor %}
+    </ul>
 
-    TODO
 {% endblock %}
