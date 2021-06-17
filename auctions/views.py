@@ -1,9 +1,10 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, CreateView
 
 from .models import User, Auction_listing
 
@@ -74,4 +75,13 @@ class Listing(DetailView):
     template_name = 'auctions/listing.html'
     context_object_name = 'listing'
 
+class New_Listing(LoginRequiredMixin, CreateView):
+    model = Auction_listing
+    template_name = 'auctions/new-listing.html'
+    fields = ('title', 'description', 'starting_bid', 'tag', 'image')
+
+    def form_valid(self, form):
+        form.instance.current_price = form.instance.starting_bid
+        form.instance.author = self.request.user
+        return super().form_valid(form)
 

@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
+from django.urls import reverse
 
 class User(AbstractUser):
     pass
@@ -20,6 +20,9 @@ class Auction_listing(models.Model):
 
     def __str__(self):
         return f"{self.title}: starting bid: {self.starting_bid}, current price {self.current_price}"
+
+    def get_absolute_url(self):
+        return reverse('listing-detail', args=(str(self.id)))
 
 
 class Bid(models.Model):
