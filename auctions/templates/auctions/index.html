@@ -6,7 +6,11 @@
     {% for listing in object_list %}
         <li>
             <a href="{% url 'listing-detail' pk=listing.pk %}">{{ listing.title }}</a>
-            {{ listing }}
+            <p>description: {{ listing.description }}</p>
+            <p>current price:{{ listing.current_price }}</p>
+            {% if listing.image %}
+                <img src={{ listing.image }} alt="image">
+            {% endif %}
         </li>
     {% endfor %}
     </ul>
