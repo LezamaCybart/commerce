@@ -1,8 +1,18 @@
-{% extends "auctions/layout.html" %}
-
-{% block body %}
-<h2>{{ listing }}</h2>
+{% extends "auctions/layout.html" %} {% block body %}
 <h2>{{ listing.title }}</h2>
+<h1>{{ listing.description }}</h1>
+<h1>{{ listing.current_price }}</h1>
+<img src="{{ listing.image }}" alt="image">
 
 
-{% endblock %}
+{% if listing not in watchlist.auction_listing.all %}
+<form action="{% url 'add_watchlist' listing.pk %}" method="POST">
+  {% csrf_token %}
+  <button class="button add" type="submit">Add to watchlist</button>
+</form>
+{% else %}
+<form action="{% url 'remove_watchlist' listing.pk %}" method="POST">
+  {% csrf_token %}
+  <button class="button remove" type="submit">Remove from watchlist</button>
+</form>
+{% endif %} {% endblock %}

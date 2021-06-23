@@ -40,4 +40,8 @@ class Comment(models.Model):
     def __str___(self):
         return f"{self.auction_listing.title} {self.name}"
 
+class Watchlist(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    auction_listing = models.ManyToManyField(Auction_listing)
+
 

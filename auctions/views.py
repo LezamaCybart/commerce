@@ -1,12 +1,13 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.http import HttpResponse, HttpResponseRedirect, request
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.generic import ListView, DetailView, CreateView
+from django.contrib.auth.decorators import login_required
 
-from .models import User, Auction_listing
+from .models import User, Auction_listing, Watchlist
 
 
 """
@@ -75,6 +76,12 @@ class Listing(DetailView):
     template_name = 'auctions/listing.html'
     context_object_name = 'listing'
 
+    def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['watchlist'] = Watchlist.objects.get(author=self.request.user)
+            context['usuario'] = self.request.user
+            return context
+
 class New_Listing(LoginRequiredMixin, CreateView):
     model = Auction_listing
     template_name = 'auctions/new-listing.html'
@@ -84,4 +91,24 @@ class New_Listing(LoginRequiredMixin, CreateView):
         form.instance.current_price = form.instance.starting_bid
         form.instance.author = self.request.user
         return super().form_valid(form)
+
+@login_required(login_url='/login')
+def add_to_watchlist(request, listing_key):
+    listing = Auction_listing.objects.get(pk = listing_key)
+
+    if request.method == "POST":
+        watchlist, created = Watchlist.objects.get_or_create(author = request.user)
+        watchlist.auction_listing.add(listing)
+        return redirect('listing-detail', pk=listing_key)
+
+@login_required(login_url='/login')
+def remove_from_watchlist(request, listing_key):
+    listing = Auction_listing.objects.get(pk = listing_key)
+
+    if request.method == "POST":
+        watchlist, created = Watchlist.objects.get_or_create(author = request.user)
+        watchlist.auction_listing.remove(listing)
+        return redirect('listing-detail', pk=listing_key)
+    
+
 
