@@ -1,4 +1,4 @@
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, models
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, request
@@ -6,16 +6,13 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.generic import ListView, DetailView, CreateView
 from django.contrib.auth.decorators import login_required
+from django import forms
 
-from .models import User, Auction_listing, Watchlist
+from .models import User, Auction_listing, Watchlist, Bid
 
+class BidForm(forms.Form):
+    amount = forms.FloatField(label="amount to bid")
 
-"""
-def index(request):
-    return render(request, "auctions/index.html", { 
-        "listings": Auction_listing.objects.all()
-        })
-"""
 class Index(ListView):
     model = Auction_listing
     template_name = 'auctions/index.html'
@@ -80,6 +77,7 @@ class Listing(DetailView):
             context = super().get_context_data(**kwargs)
             context['watchlist'] = Watchlist.objects.get(author=self.request.user)
             context['usuario'] = self.request.user
+            context['bid_form'] = BidForm
             return context
 
 class New_Listing(LoginRequiredMixin, CreateView):
@@ -111,4 +109,33 @@ def remove_from_watchlist(request, listing_key):
         return redirect('listing-detail', pk=listing_key)
     
 
+"""
+class Create_Bid(LoginRequiredMixin, CreateView):
+    model = Bid
+    template_name = 'auctions/new-bid.html'
+    fields = ('amount')
 
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+"""
+
+@login_required(login_url='/login')
+def bid(request, listing_key):
+    form = BidForm(request.POST)
+    if form.is_valid():
+        amount = form.cleaned_data["amount"]
+
+    bids = Bid.objects.filter(listing_id=listing_key)
+
+    if len(bids) == 0:
+        current_price = Auction_listing.objects.get(pk=listing_key).starting_bid
+    else:
+        current_price = bids.order_by('-amount')[0].amount
+
+    if amount > current_price:
+        bin = Bid(user=request.user, listing=Auction_listing.objects.get(pk=listing_key), amount=amount)
+        bin.save()
+        return HttpResponse("Success")
+    else:
+        return HttpResponse("go Higher")

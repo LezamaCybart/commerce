@@ -15,4 +15,10 @@
   {% csrf_token %}
   <button class="button remove" type="submit">Remove from watchlist</button>
 </form>
-{% endif %} {% endblock %}
+{% endif %} 
+<form action="{% url 'bid' listing.pk %}" method="POST">
+  {% csrf_token %}
+  {{ bid_form }}
+  <button class="button remove" type="submit"> Bid</button>
+</form>
+{% endblock %}

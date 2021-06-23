@@ -24,11 +24,12 @@ class Auction_listing(models.Model):
     def get_absolute_url(self):
         return reverse('listing-detail', args=(str(self.id)))
 
-
 class Bid(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    listing = models.ForeignKey(Auction_listing, on_delete=models.CASCADE)
     amount = models.FloatField()
     date = models.DateTimeField(auto_now_add = True)
+
 
 class Comment(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
