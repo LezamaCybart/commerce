@@ -17,6 +17,28 @@ class Index(ListView):
     model = Auction_listing
     template_name = 'auctions/index.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_prices_list'] = get_current_prices_list()
+        return context
+
+def get_current_prices_list():
+    current_prices_list = list()
+
+    listings = Auction_listing.objects.all()
+
+    for listing in listings:
+        bids = Bid.objects.filter(listing_id=listing.pk)
+        if len(bids) == 0:
+            current_price = listing.starting_bid
+        else:
+            current_price = bids.order_by('-amount')[0].amount
+        current_prices_list.append(current_price)
+
+    return current_prices_list
+
+
+
 def login_view(request):
     if request.method == "POST":
 
@@ -78,6 +100,11 @@ class Listing(DetailView):
             context['watchlist'] = Watchlist.objects.get(author=self.request.user)
             context['usuario'] = self.request.user
             context['bid_form'] = BidForm
+            bids = Bid.objects.filter(listing_id=self.object.pk)
+            if len(bids) == 0:
+                context['current_price'] = Auction_listing.objects.get(pk=self.object.pk).starting_bid
+            else:
+                context['current_price'] = bids.order_by('-amount')[0].amount
             return context
 
 class New_Listing(LoginRequiredMixin, CreateView):
