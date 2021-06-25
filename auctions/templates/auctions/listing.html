@@ -1,7 +1,7 @@
 {% extends "auctions/layout.html" %} {% block body %}
 <h2>{{ listing.title }}</h2>
 <h1>{{ listing.description }}</h1>
-<h1>{{ current_price }}</h1>
+<h1>{{ listing.current_price }}</h1>
 <img src="{{ listing.image }}" alt="image" />
 
 {% if listing not in watchlist.0.auction_listing.all %}

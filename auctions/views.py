@@ -1,3 +1,4 @@
+import auctions
 from django.contrib.auth import authenticate, login, logout, models
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError
@@ -35,6 +36,28 @@ class WatchlistView(ListView):
         context = super().get_context_data(**kwargs)
         context['listings'] = Watchlist.objects.get(author=self.request.user)
         return context
+
+def categories_list(request):
+    listings = Auction_listing.objects.all()
+
+    categories = list()
+
+    for listing in listings:
+        categories.append(listing.tag)
+
+    categories = list(set(categories))
+
+    return render(request, 'auctions/categories.html', {
+        'categories': categories
+    })
+
+def category_list(request, category):
+    listings = Auction_listing.objects.filter(tag=category)
+
+    return render(request, 'auctions/category.html', {
+        'category': category,
+        'listings': listings
+    })
 
 
 
@@ -117,14 +140,6 @@ class Listing(DetailView):
             context['usuario'] = self.request.user
             context['bid_form'] = BidForm
             context['comment_form'] = CommentForm
-            context['current_price'] = Auction_listing.objects.get(pk=self.object.pk).current_price
-            """
-            bids = Bid.objects.filter(listing_id=self.object.pk)
-            if len(bids) == 0:
-                context['current_price'] = Auction_listing.objects.get(pk=self.object.pk).starting_bid
-            else:
-                context['current_price'] = bids.order_by('-amount')[0].amount
-            """
             return context
 
 class New_Listing(LoginRequiredMixin, CreateView):

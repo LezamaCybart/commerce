@@ -1,3 +1,4 @@
+{% extends "auctions/layout.html" %}
 {% block body %}
     {% for listing in listings.auction_listing.all %}
         <a href="{% url 'listing-detail' pk=listing.pk %}">{{ listing.title }}</a>
