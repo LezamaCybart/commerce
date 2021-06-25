@@ -1,7 +1,7 @@
 from django.urls import path
 
 from . import views
-from .views import Index, Listing, New_Listing
+from .views import Index, Listing, New_Listing, WatchlistView
 
 urlpatterns = [
     #path("", views.index, name="index"), using class based urls instead
@@ -17,5 +17,6 @@ urlpatterns = [
     path("comment/<int:listing_key>", views.comment, name="comment"),
 
     path("listing/<int:pk>", Listing.as_view(), name="listing-detail"),
-    path("new_listing/", New_Listing.as_view(), name="new_listing")
+    path("new_listing/", New_Listing.as_view(), name="new_listing"),
+    path("watchlist/<int:pk>", WatchlistView.as_view(), name="watchlist")
 ]

@@ -3,11 +3,11 @@
 {% load auction_tags %}
     <h2>Active Listings</h2>
     <ul>
-    {% for listing, current_price in object_list|zip:current_prices_list %}
+    {% for listing object_list %}
         <li>
             <a href="{% url 'listing-detail' pk=listing.pk %}">{{ listing.title }}</a>
             <p>description: {{ listing.description }}</p>
-            <p>current price:{{ current_price }}</p>
+            <p>current price:{{ listing.current_price }}</p>
             {% if listing.image %}
                 <img src={{ listing.image }} alt="image">
             {% endif %}

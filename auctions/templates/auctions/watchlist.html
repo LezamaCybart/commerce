@@ -1,0 +1,9 @@
+{% block body %}
+    {% for listing in listings.auction_listing.all %}
+        <a href="{% url 'listing-detail' pk=listing.pk %}">{{ listing.title }}</a>
+        <p>description: {{ listing.description }}</p>
+        <p>current price:{{ listing.current_price }}</p>
+        <br>
+    {% endfor %}
+
+{% endblock %}

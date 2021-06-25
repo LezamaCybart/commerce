@@ -26,6 +26,18 @@ class Index(ListView):
         context['current_prices_list'] = get_current_prices_list()
         return context
 
+class WatchlistView(ListView):
+    model = Watchlist
+    template_name = 'auctions/watchlist.html'
+    context_object_name = 'listings'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['listings'] = Watchlist.objects.get(author=self.request.user)
+        return context
+
+
+
 def get_current_prices_list():
     current_prices_list = list()
 
@@ -105,11 +117,14 @@ class Listing(DetailView):
             context['usuario'] = self.request.user
             context['bid_form'] = BidForm
             context['comment_form'] = CommentForm
+            context['current_price'] = Auction_listing.objects.get(pk=self.object.pk).current_price
+            """
             bids = Bid.objects.filter(listing_id=self.object.pk)
             if len(bids) == 0:
                 context['current_price'] = Auction_listing.objects.get(pk=self.object.pk).starting_bid
             else:
                 context['current_price'] = bids.order_by('-amount')[0].amount
+            """
             return context
 
 class New_Listing(LoginRequiredMixin, CreateView):
@@ -141,16 +156,6 @@ def remove_from_watchlist(request, listing_key):
         return redirect('listing-detail', pk=listing_key)
     
 
-"""
-class Create_Bid(LoginRequiredMixin, CreateView):
-    model = Bid
-    template_name = 'auctions/new-bid.html'
-    fields = ('amount')
-
-    def form_valid(self, form):
-        form.instance.author = self.request.user
-        return super().form_valid(form)
-"""
 
 @login_required(login_url='/login')
 def bid(request, listing_key):
@@ -168,6 +173,9 @@ def bid(request, listing_key):
     if amount > current_price:
         bin = Bid(user=request.user, listing=Auction_listing.objects.get(pk=listing_key), amount=amount)
         bin.save()
+        listing = Auction_listing.objects.get(pk=listing_key)
+        listing.current_price = amount
+        listing.save()
         return redirect('listing-detail', pk=listing_key)
     else:
         messages.add_message(request, messages.WARNING, "Go higher!")
