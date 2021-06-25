@@ -34,4 +34,21 @@
 {% if listing.winner == request.user %}
   <h2>You won !</h2>
 {% endif %} 
+<ul>
+  {% for comment in listing.comments.all %}
+    <li>
+      <strong>
+          {{ comment.author }}
+          {{ comment.date_added }}
+      <br>
+        {{ comment.body }}
+      </strong>
+    </li>
+  {% endfor %}
+</ul>
+<form action="{% url 'comment' listing.pk %}" method="POST">
+  {% csrf_token %} 
+  {{ comment_form }}
+  <button class="button remove" type="submit">Add comment</button>
+</form>
 {% endblock %}

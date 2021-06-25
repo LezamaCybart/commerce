@@ -36,7 +36,6 @@ class Bid(models.Model):
 class Comment(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     auction_listing = models.ForeignKey(Auction_listing, related_name="comments", on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
     body = models.TextField()
     date_added = models.DateTimeField(auto_now_add=True)
 

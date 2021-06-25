@@ -9,10 +9,13 @@ from django.contrib.auth.decorators import login_required
 from django import forms
 from django.contrib import messages
 
-from .models import User, Auction_listing, Watchlist, Bid
+from .models import User, Auction_listing, Watchlist, Bid, Comment
 
 class BidForm(forms.Form):
     amount = forms.FloatField(label="amount to bid")
+
+class CommentForm(forms.Form):
+    comment = forms.CharField(widget=forms.Textarea)
 
 class Index(ListView):
     model = Auction_listing
@@ -101,6 +104,7 @@ class Listing(DetailView):
             context['watchlist'] = Watchlist.objects.get_or_create(author=self.request.user)
             context['usuario'] = self.request.user
             context['bid_form'] = BidForm
+            context['comment_form'] = CommentForm
             bids = Bid.objects.filter(listing_id=self.object.pk)
             if len(bids) == 0:
                 context['current_price'] = Auction_listing.objects.get(pk=self.object.pk).starting_bid
@@ -186,3 +190,17 @@ def close_listing(request, listing_key):
             return redirect('listing-detail', pk=listing_key)
 
         return redirect('listing-detail', pk=listing_key)
+
+@login_required(login_url='/login')
+def comment(request, listing_key):
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        author = request.user
+        listing = Auction_listing.objects.get(pk=listing_key)
+        body = form.cleaned_data['comment']
+        comment = Comment(author=author, auction_listing=listing, body=body)
+        comment.save()
+
+        return redirect('listing-detail', pk=listing_key)
+
+
