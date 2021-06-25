@@ -11,6 +11,8 @@ class Auction_listing(models.Model):
     description = models.CharField(max_length=100)
     starting_bid = models.FloatField()
     current_price = models.FloatField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    winner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, default=None)
 
     #optional tag
     tag = models.CharField(max_length=10, null=True, blank=True, default='')
@@ -43,6 +45,6 @@ class Comment(models.Model):
 
 class Watchlist(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    auction_listing = models.ManyToManyField(Auction_listing)
+    auction_listing = models.ManyToManyField(Auction_listing, blank=True, null=True, default=None)
 
 

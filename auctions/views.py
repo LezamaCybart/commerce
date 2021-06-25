@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.views.generic import ListView, DetailView, CreateView
 from django.contrib.auth.decorators import login_required
 from django import forms
+from django.contrib import messages
 
 from .models import User, Auction_listing, Watchlist, Bid
 
@@ -97,7 +98,7 @@ class Listing(DetailView):
 
     def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            context['watchlist'] = Watchlist.objects.get(author=self.request.user)
+            context['watchlist'] = Watchlist.objects.get_or_create(author=self.request.user)
             context['usuario'] = self.request.user
             context['bid_form'] = BidForm
             bids = Bid.objects.filter(listing_id=self.object.pk)
@@ -119,19 +120,19 @@ class New_Listing(LoginRequiredMixin, CreateView):
 
 @login_required(login_url='/login')
 def add_to_watchlist(request, listing_key):
-    listing = Auction_listing.objects.get(pk = listing_key)
+    watchlist, created = Watchlist.objects.get_or_create(author = request.user)
 
     if request.method == "POST":
-        watchlist, created = Watchlist.objects.get_or_create(author = request.user)
+        listing = Auction_listing.objects.get(pk = listing_key)
         watchlist.auction_listing.add(listing)
         return redirect('listing-detail', pk=listing_key)
 
 @login_required(login_url='/login')
 def remove_from_watchlist(request, listing_key):
-    listing = Auction_listing.objects.get(pk = listing_key)
+    watchlist, created = Watchlist.objects.get_or_create(author = request.user)
 
     if request.method == "POST":
-        watchlist, created = Watchlist.objects.get_or_create(author = request.user)
+        listing = Auction_listing.objects.get(pk = listing_key)
         watchlist.auction_listing.remove(listing)
         return redirect('listing-detail', pk=listing_key)
     
@@ -163,6 +164,25 @@ def bid(request, listing_key):
     if amount > current_price:
         bin = Bid(user=request.user, listing=Auction_listing.objects.get(pk=listing_key), amount=amount)
         bin.save()
-        return HttpResponse("Success")
+        return redirect('listing-detail', pk=listing_key)
     else:
-        return HttpResponse("go Higher")
+        messages.add_message(request, messages.WARNING, "Go higher!")
+        return redirect('listing-detail', pk=listing_key)
+
+@login_required(login_url='/login')
+def close_listing(request, listing_key):
+    if request.method == "POST":
+        bids = Bid.objects.filter(listing_id=listing_key)
+
+        listing = Auction_listing.objects.get(pk=listing_key)
+
+        listing.is_active = False
+        listing.save()
+
+        if len(bids) != 0:
+            winner = bids.order_by('-amount')[0].user
+            listing.winner = winner
+            listing.save()
+            return redirect('listing-detail', pk=listing_key)
+
+        return redirect('listing-detail', pk=listing_key)
